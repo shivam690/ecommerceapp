@@ -1,0 +1,26 @@
+.product-card {
+    background-color: hsl(188, 34%, 79%);
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px #0000001a;
+  }
+  
+  .product-card h6 {
+    margin-bottom: 4px;
+  }
+  
+  .product-card p {
+    margin-bottom: 4px;
+  }
+  
+  .product-card .price {
+    font-weight: bold;
+  }
+  
+  .search-bar{
+    padding: 10px;
+  }
+  .action-button{
+    margin-left: 2px;
+    margin-right: 2px;
+  }

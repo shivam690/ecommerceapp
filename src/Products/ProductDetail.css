@@ -1,0 +1,26 @@
+.container {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  
+  .heading {
+    color: rgb(8, 109, 142);
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .name {
+    color: #222;
+    font-weight: bold;
+  }
+  
+  .description {
+    color: #555;
+  }
+  
+  .txt{
+    color: #cf7fbf;
+    font-weight: bold;
+  }
+  
