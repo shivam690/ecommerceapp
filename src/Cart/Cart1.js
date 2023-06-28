@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./Cart.css";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button ,Alert} from "@mui/material";
+import {Card , CardContent}from "@mui/material";
 import { AppBar, Toolbar } from "@mui/material";
 import Img from "../Products/product_img.avif";
 import { useAtom } from "jotai";
 import { customerIdAtom, emailAtom } from "../Atoms/atoms";
+import Swal from "sweetalert2";
 
 
  function Cart1() {
@@ -13,33 +15,42 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
  const [cusId, setCusId]=useState();
  const[allProduct,setAllProducts]=useState();
  const[items2,setItems2]=useState();
+ const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [emailId] = useAtom(emailAtom);
-  const[addressId,setAddressId]=useState();
-  const[customerid, setCustomerid]=useAtom(customerIdAtom)
+  const[addressId,setAddressId]=useState(null);
+  const [address,setAddress]=useState();
+  const[customerid, setCustomerid]=useAtom(customerIdAtom);
+  const[addr,setadd]=useState(false);
   // console.log("emailId", emailId);
   const combinedItems=[];
+  var total=0;
+  const adrs=null;
+  const [total1, setTotal] = useState(0);
 
-
-  useEffect(() => {
+  
+  useEffect(()=>{
     fetchCartItems(cusId);
     setCustomerid(cusId);
     fetchAllProducts();   
     getCutomerDetails();
    
-   
-  }, [cusId]);
+    getAddress();
+    
+    
+  },[cusId])
 
  
 
 
   async function getCutomerDetails(){
+    const email= localStorage.getItem("emailId");
     try {
-      const encodedEmail = encodeURIComponent(emailId);
+      const encodedEmail = encodeURIComponent(email);
       console.log(encodedEmail);
       const response = await axios.get(
-        `http://localhost:8080/api/v1/customer/${emailId}`
+        `http://localhost:8080/api/v1/customer/${encodeURIComponent(localStorage.getItem("emailId"))}`
       );
-      
+      localStorage.setItem("CustomerId",response.data.customerId);
        setCusId(response.data.customerId);
        
        setAddressId(response.data.address[0].addressId);
@@ -84,9 +95,7 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
       });
     }
 
- 
 
-  
 
   const getProductInfo = async (productid) => {
     const response = await axios
@@ -137,20 +146,39 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
       });
   }
 
-  function handleCheckOut() {
-    axios
-      .post("http://localhost:8080/api/v1/orders", {
-        customerId: cusId,
-        shippingAddressId: addressId,
-      })
-      .then((resp) => {
-        console.log(resp);
-        console.log("CheckOut");
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  const handleCheckOut=()=> {
+    console.log(cusId,"cusId checkout");
+    console.log(addressId,"AddressId checkout");
+  try{
+    const resp= axios.post("http://localhost:8080/api/v1/orders", {
+      customerId: cusId,
+      shippingAddressId: addressId,
+    });
+    Swal.fire("OK","Order Has Placed")
+    
   }
+  catch(error){
+    console.log(error);
+  }
+
+  }
+   
+
+  async function getAddress()
+  { 
+    try{
+    const resp= await axios.get(`http://localhost:8080/api/v1/address/${localStorage.getItem("CustomerId")}`);
+    setAddress(resp.data);
+    console.log(resp.data,"AddressData");
+   
+
+  }
+  catch (err){
+    console.log(err);
+  }
+  }
+ 
+ 
 
 
   function deleteAll() {
@@ -173,15 +201,17 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             My Store
           </Typography>
-          <Button color="secondary" onClick={() => handleCheckOut()}>
-            Checkout Now
-          </Button>
+         
+          
         </Toolbar>
       </AppBar>
       <div className="cart">
+       
         <Typography variant="h4" className="cart-title">
           Cart
         </Typography>
+       
+
         {items?.map((item) => (
           
           <Box
@@ -193,10 +223,11 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
             
             {(() => {
                          const product = allProduct.find(productItem => productItem.id === item.productId);
+                         total=total+product.productPrice;
                           return (
                             <>
-                              <h3 style={{color:"blueviolet"}}>{product.name} Brand: {product.brand} Price : {product.price}</h3>
-
+                              <h3 style={{color:"blueviolet"}}>Product :{product.name}  <br/>Brand: {product.brand} <br/>Product Price : {product.productPrice}</h3>
+                               
                             </>
                           );
 
@@ -232,11 +263,16 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
               Delete
             </Button>
           </Box>
+          
         ))}
 
         {items?.length === 0 && (
           <Typography variant="body1">Cart is empty.</Typography>
         )}
+
+
+            
+  
         <div>
           {items?.length > 0 && (
             <Button
@@ -248,8 +284,37 @@ import { customerIdAtom, emailAtom } from "../Atoms/atoms";
               Clear Cart
             </Button>
           )}
-        </div>
+
+           
+          </div>
+
+          
+          
+               
+        
+        
       </div>
+     
+      <div>
+     
+
+      {address &&(
+          <Card className="shipping-address"  sx={{ border: 2, borderColor: "secondary.main" }}>
+            <CardContent>
+            <Typography variant="h6"><b>Total Amount: {total}</b></Typography>
+              <Typography variant="h6"><b>Shipping Address:</b></Typography>
+              <Typography variant="body1">
+                {address[0].addressLine}, {address[0].city}, {address[0].region}, {address[0].state}
+              </Typography><br/>
+              <Button  type="submit"
+            variant="contained"
+            color="success"  onClick={() => handleCheckOut()}>Order Now</Button><br/>
+
+              
+            </CardContent>
+          </Card>
+        )}
+        </div>
     </div>
   );
 }

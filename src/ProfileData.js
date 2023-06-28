@@ -3,18 +3,21 @@ import axios from 'axios';
 import { Container, Typography } from '@mui/material';
 import './ProfileData.css';
 import { useAtom } from 'jotai';
-import { emailAtom } from './Atoms/atoms';
+import { emailAtom } from './login';
 import { useNavigate } from 'react-router-dom';
 
 const ProfileData = () => {
   const [profileData, setProfileData] = useState(null);
-   const[emailId,setEmailId]=useAtom(emailAtom);
+   const[emailId]=useAtom(emailAtom);
    const navigate =useNavigate();
 
   useEffect(() => {
+    
+
     const fetchProfileData = async () => {
       try {
-        const encodedEmail = encodeURIComponent(emailId);
+        console.log(emailId,"emailId");
+        const encodedEmail = encodeURIComponent(localStorage.getItem("emailId"));
         const response = await axios.get(`http://localhost:8080/api/v1/customer/${encodedEmail}`);
         setProfileData(response.data);
         console.log(response.data);

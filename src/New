@@ -1,0 +1,295 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Typography, Button, Card, CardContent } from "@mui/material";
+import { AppBar, Toolbar } from "@mui/material";
+import { useHistory } from "react-router-dom";
+import Swal from "sweetalert2";
+import ReactTable from "react-table-v6";
+import "react-table-v6/react-table.css";
+
+function Cart1() {
+  const history = useHistory();
+  const [cusId, setCusId] = useState("");
+  const [addressId, setAddressId] = useState("");
+  const [items, setCartItems] = useState([]);
+  const [allProduct, setAllProducts] = useState([]);
+  const [address, setAddress] = useState([]);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    const email = localStorage.getItem("emailId");
+    if (!email) {
+      history.push("/login");
+    } else {
+      fetchCustomerInfo();
+      getAddress();
+      fetchAllProducts();
+    }
+  }, []);
+
+  useEffect(() => {
+    calculateTotal();
+  }, [items]);
+
+  async function fetchCustomerInfo() {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/customer/${encodeURIComponent(
+          localStorage.getItem("emailId")
+        )}`
+      );
+      localStorage.setItem("CustomerId", response.data.customerId);
+      setCusId(response.data.customerId);
+      setAddressId(response.data.address[0].addressId);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async function fetchCartItems(cusid) {
+    try {
+      const config = {
+        headers: { customerId: cusid },
+      };
+      const response = await axios.get(
+        "http://localhost:8080/api/v1/cart",
+        config
+      );
+      setCartItems(response.data.cartItems);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function fetchAllProducts() {
+    axios
+      .get("http://localhost:8080/api/v1/products")
+      .then((response) => {
+        setAllProducts(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
+  const getProductInfo = async (productid) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/product/${productid}`
+      );
+      console.log(response);
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  function handleQuantity(opr, item) {
+    const config = {
+      headers: {
+        customerId: cusId,
+        productId: item.productId,
+        operationType: opr,
+      },
+    };
+    axios
+      .put("http://localhost:8080/api/v1/cart/update", "", config)
+      .then((res) => {
+        console.log(res);
+        fetchCartItems(cusId);
+      })
+      .catch((err) => console.log(err));
+  }
+
+  function deleteItem(item) {
+    const config = {
+      headers: {
+        customerId: cusId,
+      },
+    };
+    const encodedid = encodeURIComponent(item.id);
+    axios
+      .delete(`http://localhost:8080/api/v1/cart/${encodedid}`, config)
+      .then((response) => {
+        console.log(response);
+        fetchCartItems(cusId);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function deleteAll() {
+    const config = {
+      headers: {
+        customerId: cusId,
+      },
+    };
+    axios
+      .delete("http://localhost:8080/api/v1/cart", config)
+      .then((response) => {
+        console.log(response);
+        fetchCartItems(cusId);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  async function getAddress() {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/address/${addressId}`
+      );
+      setAddress(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function calculateTotal() {
+    let sum = 0;
+    items.forEach((item) => {
+      const product = allProduct.find((p) => p.id === item.productId);
+      sum += product.productPrice * item.quantity;
+    });
+    setTotal(sum);
+  }
+
+  function handleCheckOut() {
+    const order = {
+      customerId: cusId,
+      addressId: addressId,
+    };
+
+    axios
+      .post("http://localhost:8080/api/v1/order", order)
+      .then((response) => {
+        Swal.fire({
+          icon: "success",
+          title: "Order Placed",
+          text: `Order placed successfully. Order ID: ${response.data.orderId}`,
+        });
+        deleteAll();
+        history.push("/products");
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  const columns = [
+    {
+      Header: "Product",
+      accessor: "productId",
+      Cell: ({ value }) => {
+        const product = allProduct.find((productItem) => productItem.id === value);
+        return (
+          <>
+            <h3 style={{ color: "blueviolet" }}>
+              Product: {product.name} <br />
+              Brand: {product.brand} <br />
+              Product Price: {product.productPrice}
+            </h3>
+          </>
+        );
+      },
+    },
+    {
+      Header: "Quantity",
+      accessor: "quantity",
+      Cell: ({ value, row }) => (
+        <>
+          <Button
+            style={{ margin: "0 20px" }}
+            variant="outlined"
+            color="primary"
+            className="cart-item-button"
+            onClick={() => handleQuantity(true, row.original)}
+          >
+            +
+          </Button>
+          <Typography variant="body1" style={{ margin: "0 8px" }}>
+            {value}
+          </Typography>
+          <Button
+            variant="outlined"
+            color="primary"
+            className="cart-item-button"
+            onClick={() => handleQuantity(false, row.original)}
+          >
+            -
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            className="cart-item-button"
+            onClick={() => deleteItem(row.original)}
+          >
+            Delete
+          </Button>
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            My Store
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <div className="cart">
+        <Typography variant="h4" className="cart-title">
+          Cart
+        </Typography>
+
+        {items && (
+          <ReactTable
+            columns={columns}
+            data={items}
+            showPagination={false}
+            className="-striped -highlight"
+          />
+        )}
+
+        {items && items.length === 0 && (
+          <Typography variant="body1">Cart is empty.</Typography>
+        )}
+
+        {items && items.length > 0 && (
+          <Card className="cart-total">
+            <CardContent>
+              <Typography variant="h6">Total Price: {total}</Typography>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="cart-buttons">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCheckOut}
+            disabled={items && items.length === 0}
+          >
+            Checkout
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={deleteAll}
+            disabled={items && items.length === 0}
+          >
+            Clear Cart
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Cart1;

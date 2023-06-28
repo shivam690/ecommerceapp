@@ -1,0 +1,37 @@
+/* slider.css */
+
+.frame {
+    position: relative;
+    overflow-x: hidden;
+    height:max-content;
+   
+  }
+  
+  .slider {
+    position: relative;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .btns {
+    position: absolute;
+    z-index: 1;
+    color: #ffffff;
+    bottom: 50%;
+    width: 100%;
+  }
+  
+  .prev-button,
+  .next-button {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #00bfff;
+    padding: 4px;
+  }
+  
+  .prev-button {
+    margin-right: 10px;
+  }
+  
+  .next-button {
+    margin-left: 10px;
+  }
+  

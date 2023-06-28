@@ -1,36 +1,37 @@
 
 import ProductList from './Products/DisplayProducts';
-import DisplayProduct from './Products/DisplayProducts';
-import Login from './Authentication/Login';
+import Login1 from './login';
 import ProfileData from './ProfileData';
+import ProductDetailsPage from './Products/ProductDetail';
 import { BrowserRouter,  Route, Routes } from 'react-router-dom';
-import SignUp1 from './Authentication/SignUP1';
-import ProductDetails from './Products/ProductDetail';
+import Navbar from "./components/Navbar";
  import Cart1 from './Cart/Cart1';
+ import Home from './Home';
+ import ContactForm from "./Contact";
+ import SignUp1 from './SignUP1';
 
- 
-import Navbar from './components/Navbar';
-import { Home } from '@mui/icons-material';
-import { Test } from './New';
 
 function App() {
   
-
   return (
    
    <>
-   
    <BrowserRouter>
-   <Routes>
-    <Route path="/" element={<Login/>}/>
-    <Route path="/cart" element={<Cart1/>}/>
-    <Route path="/profile" element={<ProfileData/>}/>
-    <Route path="/prodDetail" element={<ProductDetails/>}/>
-    <Route path="/display" element={<DisplayProduct/>}/>
-    <Route path="/test" element={<Test/>}/>
+    <Navbar/>
+      <Routes>
+      
+        <Route path="/" element={<Home />} />
+        <Route path="/contact" element={<ContactForm/>} />
+        <Route path='signup' element={<SignUp1/>}/>
 
-   </Routes>
-   </BrowserRouter>
+        <Route path='prodDetail' element={<ProductDetailsPage/>}/>
+        <Route path="/login" element={<Login1 />} />
+       < Route path="/display" element={<ProductList/>}/>
+        <Route path="/ProfileData" element={<ProfileData />} />
+        <Route path='/cart' element={<Cart1/>}/>
+        
+      </Routes>
+    </BrowserRouter>
    </>
   );
 }

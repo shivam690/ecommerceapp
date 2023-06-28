@@ -8,7 +8,6 @@ import { emailAtom } from "../Atoms/atoms";
 
 import { useNavigate } from "react-router-dom";
 
-
 function Login() {
   const {
     handleSubmit,
@@ -25,7 +24,7 @@ function Login() {
       const config = {
         headers: {
           emailId: getValues("emailId"),
-          password: getValues("password")
+          password: getValues("password"),
         },
       };
       const response = await axios.post(
@@ -35,15 +34,16 @@ function Login() {
       );
 
       setEmailId(getValues("emailId"));
+      localStorage.setItem("emailId", getValues("emailId"));
 
-      
-        navigate("/display");
-      
+      if (response.status === 200) {
+        window.location.reload(true);
+        () => navigate("/display");
+      }
     } catch (error) {
       console.error(error);
     }
   };
-  
 
   return (
     <div>
@@ -69,6 +69,7 @@ function Login() {
           <br />
           <TextField
             label="Password"
+            type="password"
             fullWidth
             {...register("password", { required: true })}
             className="textField"
@@ -85,8 +86,6 @@ function Login() {
           >
             Login
           </Button>
-        
-          
         </form>
       </Container>
     </div>

@@ -5,6 +5,7 @@ import { productIdAtom ,cus} from './DisplayProducts';
 import { Typography, Container, Button } from '@mui/material';
 import { useAtom } from 'jotai';
 import { customerIdAtom } from '../Atoms/atoms';
+import Swal from 'sweetalert2';
 
 function ProductDetailsPage() {
   
@@ -32,8 +33,7 @@ function ProductDetailsPage() {
         productId:productId,
         quantity:"1"
       })
-      console.log(productId,"PId");
-      console.log(customerid,"CustomerId");
+      Swal.fire("OK","Added to Cart")
     }
     catch (error){
       console.log(error);
